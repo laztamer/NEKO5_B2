@@ -1,7 +1,7 @@
 Callback.Bind('Load', function() Callback.Bind('GameStart', function() OnLoadFirst() end) end)
 function OnLoadFirst()
 	Callback.Bind('Tick', function()
-		if MapPositionLoaded or not _G.EmbryoLibLoaded then
+		if MapPositionLoaded then
 			return 
 		else		
 			MapPositionLoaded = true				
