@@ -1,0 +1,1006 @@
+Callback.Bind('Load', function() Callback.Bind('GameStart', function() OnLoadFirst() end) end)
+function OnLoadFirst()
+	Callback.Bind('Tick', function()
+		if MapPositionLoaded or not _G.EmbryoLibLoaded then
+			return 
+		else		
+			MapPositionLoaded = true				
+			_G.MapPosition = function() return _MapPosition() end
+		end
+	end)
+end
+--[[
+	Map Position 1.1 by Husky and Manciuszz
+	prot 2.0 by livewa
+	MapPosition = MapPostion() then same use 1.0
+	
+	========================================================================
+	-- River Positions --------------------------------------------------------
+	MapPosition:inRiver(unit)
+	MapPosition:inTopRiver(unit)
+	MapPosition:inTopInnerRiver(unit)
+	MapPosition:inTopOuterRiver(unit)
+	MapPosition:inBottomRiver(unit)
+	MapPosition:inBottomInnerRiver(unit)
+	MapPosition:inBottomOuterRiver(unit)
+	MapPosition:inOuterRiver(unit)
+	MapPosition:inInnerRiver(unit)
+	- Base Positions ---------------------------------------------------------
+	MapPosition:inBase(unit)
+	MapPosition:inLeftBase(unit)
+	MapPosition:inRightBase(unit)
+	- Lane Positions ---------------------------------------------------------
+	MapPosition:onLane(unit)
+	MapPosition:onTopLane(unit)
+	MapPosition:TopCenterLane(unit)
+	MapPosition:TopleftLane(unit)
+	MapPosition:TopRightLane(unit)
+	MapPosition:onMidLane(unit)
+	MapPosition:MidCenterLane(unit)
+	MapPosition:onRightMidLane(unit)
+	MapPosition:MidLeftLane(unit)
+	MapPosition:MidRightLane(unit)
+	MapPosition:onBotLane(unit)
+	MapPosition:BotCenterLane(unit)
+	MapPosition:BotLeftLane(unit)
+	MapPosition:BotRightLane(unit)
+	- Jungle Positions -------------------------------------------------------
+	MapPosition:inJungle(unit)
+	MapPosition:inOuterJungle(unit)
+	MapPosition:inInnerJungle(unit)
+	MapPosition:inLeftJungle(unit)
+	MapPosition:inLeftOuterJungle(unit)
+	MapPosition:inLeftInnerJungle(unit)
+	MapPosition:inTopLeftJungle(unit)
+	MapPosition:inTopLeftOuterJungle(unit)
+	MapPosition:inTopLeftInnerJungle(unit)
+	MapPosition:inBottomLeftJungle(unit)
+	MapPosition:inBottomLeftOuterJungle(unit)
+	MapPosition:inBottomLeftInnerJungle(unit)
+	MapPosition:inRightJungle(unit)
+	MapPosition:inRightOuterJungle(unit)
+	MapPosition:inRightInnerJungle(unit)
+	MapPosition:inTopRightJungle(unit)
+	MapPosition:inTopRightOuterJungle(unit)
+	MapPosition:inTopRightInnerJungle(unit)
+	MapPosition:inBottomRightJungle(unit)
+	MapPosition:inBottomRightOuterJungle(unit)
+	MapPosition:inBottomRightInnerJungle(unit)
+	MapPosition:inTopJungle(unit)
+	MapPosition:inTopOuterJungle(unit)
+	MapPosition:inTopInnerJungle(unit)
+	MapPosition:inBottomJungle(unit)
+	MapPosition:inBottomOuterJungle(unit)
+	MapPosition:inBottomInnerJungle(unit)
+]]
+-- Config ----------------------------------------------------------------------
+class '_MapPosition'
+function _MapPosition:__init()
+	regions = {	
+		botLeftJungeGate1			 =  {Point(4673, 1466),  Point(4696, 2100), 	Point(10346, 2552),   Point(10888, 1665	)},
+		topLeftJungeGate1			 =  {Point(1259, 4826),  Point(1390, 10406), 	Point(2345, 10208),   Point(2533, 4802	)},
+		midLeftJungeGate1			 =  {Point(2782, 4665),  Point(9495, 11599), 	Point(9831, 10830),   Point(3363, 4489	)},
+		midRightJungeGate1		 =  {Point(4157, 3680),  Point(10610, 10067), Point(11245, 9763),   Point(4493, 3029	)},
+		botRightJungeGate1		 =  {Point(11600, 4482), Point(12017, 9621), 	Point(12609, 9565),   Point(12630, 3998	)},
+		topRightJungeGate1		 =  {Point(3287, 12641), Point(9341, 12862), 	Point(9507, 11603),   Point(3380, 10830	)},
+		BaronHuntingPoint1		 =  {Point(3248, 9706),  Point(4541, 10700), 	Point(5041, 10171),   Point(4290, 8873	)},
+		DragonHuntingPoint1		 =  {Point(8946, 4018),  Point(9684, 3719), 	Point(10620, 4499),   Point(9502, 5379	)},	
+		topLeftOuterJungle     =  {Point(1477, 4747),  Point(1502, 11232), 	Point(5951, 7201),   	Point(3169, 4379	)},
+		topLeftInnerJungle     =  {Point(3090, 5144),  Point(2071, 5398),  	Point(2088, 10702),  	Point(5439, 7665	)},
+		topOuterRiver          =  {Point(5951, 7201),  Point(1502, 11232), 	Point(2883, 12752),  	Point(7001, 7957	)},
+		topInnerRiver          =  {Point(5439, 7665),  Point(2088, 10702), 	Point(3454, 12086),  	Point(6503, 8537	)},
+		topRightOuterJungle    =  {Point(7001, 7957),  Point(2883, 12752), 	Point(9465, 12832),  	Point(9830, 11003	)},
+		topRightInnerJungle    =  {Point(6503, 8537),  Point(3454, 12086), 	Point(8825, 12137),  	Point(9085, 11115	)},
+		bottomLeftOuterJungle  =  {Point(4112, 3575),  Point(6969, 6416),  	Point(10922, 1920),  	Point(4486, 1784	)},
+		bottomLeftInnerJungle  =  {Point(5132, 2358),  Point(4963, 3448),  	Point(7499, 5798),   	Point(10421, 2489	)},
+		bottomOuterRiver       =  {Point(10922, 1920), Point(6969, 6416),  	Point(8192, 7207),   	Point(12552, 3442	)},
+		bottomInnerRiver       =  {Point(10421, 2489), Point(7499, 5798),  	Point(8742, 6731),   	Point(11947, 3964	)},
+		bottomRightOuterJungle =  {Point(12552, 3442), Point(8192, 7207),  	Point(10693, 10119), 	Point(12610, 9769	)},
+		bottomRightInnerJungle =  {Point(11947, 3964), Point(8742, 6731),  	Point(11076, 9373),  	Point(11998, 9234	)},
+		leftMidLane            =  {Point(3169, 4379),  Point(5951, 7201),  	Point(6969, 6416),   	Point(4112, 3575	)},
+		centerMidLane          =  {Point(6969, 6416),  Point(5951, 7201),  	Point(7001, 7957),   	Point(8192, 7207	)},
+		rightMidLane           =  {Point(8192, 7207),  Point(7001, 7957),  	Point(9830, 11003),  	Point(10693, 10119)},
+		leftBotLane            =  {Point(4502, 492),   Point(4486, 1784),  	Point(10922, 1920),  	Point(12183, 485	)},
+		centerBotLane          =  {Point(12183, 485),  Point(10922, 1920), 	Point(12552, 3442),  	Point(13985, 2204	)},
+		rightBotLane           =  {Point(13985, 2204), Point(12552, 3442), 	Point(12610, 9769),  	Point(14018, 9792	)},
+		leftTopLane            =  {Point(23, 4744),    Point(9, 12584),    	Point(1502, 11232),  	Point(1477, 4747	)},
+		centerTopLane          =  {Point(1502, 11232), Point(9, 12584),    	Point(1547, 14305),  	Point(2883, 12752	)},
+		rightTopLane           =  {Point(2883, 12752), Point(1547, 14305), 	Point(9419, 14299),  	Point(9465, 12832	)}
+	}
+end
+-- River Positions --------------------------------------------------------
+function _MapPosition:inRiver(unit)
+	return _MapPosition:inTopRiver(unit) or _MapPosition:inBottomRiver(unit)
+end
+function _MapPosition:inTopRiver(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return Polygon:findContainingPolygon(unitPoint, regions["topOuterRiver"])
+end
+function _MapPosition:inTopInnerRiver(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return Polygon:findContainingPolygon(unitPoint, regions["topInnerRiver"])
+end
+function _MapPosition:inTopOuterRiver(unit)
+	return _MapPosition:inTopRiver(unit) and not _MapPosition:inTopInnerRiver(unit)
+end
+function _MapPosition:inBottomRiver(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return	Polygon:findContainingPolygon(unitPoint, regions["bottomOuterRiver"])
+end
+function _MapPosition:inBottomInnerRiver(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return 	Polygon:findContainingPolygon(unitPoint, regions["bottomInnerRiver"])
+end
+function _MapPosition:inBottomOuterRiver(unit)
+	return _MapPosition:inBottomRiver(unit) and not _MapPosition:inBottomInnerRiver(unit)
+end
+function _MapPosition:inOuterRiver(unit)
+	return _MapPosition:inTopOuterRiver(unit) or _MapPosition:inBottomOuterRiver(unit)
+end
+function _MapPosition:inInnerRiver(unit)
+	return _MapPosition:inTopInnerRiver(unit) or _MapPosition:inBottomInnerRiver(unit)
+end
+-- Base Positions ---------------------------------------------------------
+function _MapPosition:inBase(unit)
+	return not _MapPosition:onLane(unit) and not _MapPosition:inJungle(unit) and not _MapPosition:inRiver(unit)
+end
+function _MapPosition:inLeft(unit)
+	return _MapPosition:inBase(unit) and GetDistance({x = 50, y = 0, z = 285}, unit) < 6000
+end
+function _MapPosition:inRightBase(unit)
+	return _MapPosition:inBase(unit) and GetDistance({x = 50, y = 0, z = 285}, unit) > 6000
+end
+-- Lane Positions ---------------------------------------------------------
+function _MapPosition:onLane(unit)
+	return _MapPosition:onTopLane(unit) or _MapPosition:onMidLane(unit) or _MapPosition:onBotLane(unit)
+end
+function _MapPosition:onTopLane(unit)
+	local unitPoint = Point(unit.x, unit.z)
+	return Polygon:findContainingPolygon(unitPoint, regions["leftTopLane"]) or Polygon:findContainingPolygon(unitPoint, regions["centerTopLane"]) or Polygon:findContainingPolygon(unitPoint, regions["rightTopLane"])
+end
+function _MapPosition:TopCenterLane(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return 	Polygon:findContainingPolygon(unitPoint, regions["centerTopLane"])
+end
+function _MapPosition:TopRightLane(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return  Polygon:findContainingPolygon(unitPoint, regions["rightTopLane"])
+end
+function _MapPosition:TopLeftLane(unit)
+	return 	Polygon:findContainingPolygon(unitPoint, regions["leftTopLane"])
+end
+function _MapPosition:onMidLane(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return Polygon:findContainingPolygon(unitPoint, regions["leftMidLane"]) or Polygon:findContainingPolygon(unitPoint, regions["centerMidLane"]) or Polygon:findContainingPolygon(unitPoint, regions["rightMidLane"])
+end
+function _MapPosition:MidCenterLane(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return 	Polygon:findContainingPolygon(unitPoint, regions["centerMidLane"])
+end
+function _MapPosition:onRightMidLane(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return Polygon:findContainingPolygon(unitPoint, regions["centerMidLane"]) or Polygon:findContainingPolygon(unitPoint, regions["rightMidLane"])
+end
+function _MapPosition:MidRightLane(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return 	Polygon:findContainingPolygon(unitPoint, regions["rightMidLane"])
+end
+function _MapPosition:MidLeftLane(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return Polygon:findContainingPolygon(unitPoint, regions["leftMidLane"])
+end
+function _MapPosition:onBotLane(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return Polygon:findContainingPolygon(unitPoint, regions["leftBotLane"]) or Polygon:findContainingPolygon(unitPoint, regions["centerBotLane"]) or Polygon:findContainingPolygon(unitPoint, regions["rightBotLane"])
+end
+function _MapPosition:BotCenterLane(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return 	Polygon:findContainingPolygon(unitPoint, regions["centerBotLane"])
+end
+function _MapPosition:BotRightLane(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return 	Polygon:findContainingPolygon(unitPoint, regions["rightBotLane"])
+end 
+function _MapPosition:BotLeftLane(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return 	Polygon:findContainingPolygon(unitPoint, regions["leftBotLane"])
+end	
+-- Jungle Positions -------------------------------------------------------
+function _MapPosition:inJungle(unit)
+	return _MapPosition:inLeftJungle(unit) or _MapPosition:inRightJungle(unit)
+end
+function _MapPosition:inOuterJungle(unit)
+	return _MapPosition:inLeftOuterJungle(unit) or _MapPosition:inRightOuterJungle(unit)
+end
+function _MapPosition:inInnerJungle(unit)
+	return _MapPosition:inLeftInnerJungle(unit) or _MapPosition:inRightInnerJungle(unit)
+end
+function _MapPosition:inLeftJungle(unit)
+	return _MapPosition:inTopLeftJungle(unit) or _MapPosition:inBottomLeftJungle(unit)
+end
+function _MapPosition:inLeftOuterJungle(unit)
+	return _MapPosition:inTopLeftOuterJungle(unit) or _MapPosition:inBottomLeftOuterJungle(unit)
+end
+function _MapPosition:inLeftInnerJungle(unit)
+	return _MapPosition:inTopLeftInnerJungle(unit) or _MapPosition:inBottomLeftInnerJungle(unit)
+end
+function _MapPosition:inTopLeftJungle(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return 	Polygon:findContainingPolygon(unitPoint, regions["topLeftOuterJungle"])
+end
+function _MapPosition:inTopLeftOuterJungle(unit)
+	return _MapPosition:inTopLeftJungle(unit) and not _MapPosition:inTopLeftInnerJungle(unit)
+end
+function _MapPosition:inTopLeftInnerJungle(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return 	Polygon:findContainingPolygon(unitPoint, regions["topLeftInnerJungle"])
+end
+function _MapPosition:inBottomLeftJungle(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return 	Polygon:findContainingPolygon(unitPoint, regions["bottomLeftOuterJungle"])
+end
+function _MapPosition:inBottomLeftOuterJungle(unit)
+	return _MapPosition:inBottomLeftJungle(unit) and not _MapPosition:inBottomLeftInnerJungle(unit)
+end
+function _MapPosition:inBottomLeftInnerJungle(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return 	Polygon:findContainingPolygon(unitPoint, regions["bottomLeftInnerJungle"])
+end
+function _MapPosition:inRightJungle(unit)
+	return _MapPosition:inTopRightJungle(unit) or _MapPosition:inBottomRightJungle(unit)
+end
+function _MapPosition:inRightOuterJungle(unit)
+	return _MapPosition:inTopRightOuterJungle(unit) or _MapPosition:inBottomRightOuterJungle(unit)
+end
+function _MapPosition:inRightInnerJungle(unit)
+	return _MapPosition:inTopRightInnerJungle(unit) or _MapPosition:inBottomRightInnerJungle(unit)
+end
+function _MapPosition:inTopRightJungle(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return 	Polygon:findContainingPolygon(unitPoint, regions["topRightOuterJungle"])
+end
+function _MapPosition:inTopRightOuterJungle(unit)
+	return _MapPosition:inTopRightJungle(unit) and not _MapPosition:inTopRightInnerJungle(unit)
+end
+function _MapPosition:inTopRightInnerJungle(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return 	Polygon:findContainingPolygon(unitPoint, regions["topRightInnerJungle"])
+end
+function _MapPosition:inBottomRightJungle(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return 	Polygon:findContainingPolygon(unitPoint, regions["bottomRightOuterJungle"])
+end
+function _MapPosition:inBottomRightOuterJungle(unit)
+	return _MapPosition:inBottomRightJungle(unit) and not _MapPosition:inBottomRightInnerJungle(unit)
+end
+function _MapPosition:inBottomRightInnerJungle(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return 	Polygon:findContainingPolygon(unitPoint, regions["bottomRightInnerJungle"])
+end
+function _MapPosition:inTopJungle(unit)
+	return _MapPosition:inTopLeftJungle(unit) or _MapPosition:inTopRightJungle(unit)
+end
+function _MapPosition:inTopOuterJungle(unit)
+	return _MapPosition:inTopLeftOuterJungle(unit) or _MapPosition:inTopRightOuterJungle(unit)
+end
+function _MapPosition:inTopInnerJungle(unit)
+	return _MapPosition:inTopLeftInnerJungle(unit) or _MapPosition:inTopRightInnerJungle(unit)
+end
+function _MapPosition:inBottomJungle(unit)
+	return _MapPosition:inBottomLeftJungle(unit) or _MapPosition:inBottomRightJungle(unit)
+end
+function _MapPosition:inBottomOuterJungle(unit)
+	return _MapPosition:inBottomLeftOuterJungle(unit) or _MapPosition:inBottomRightOuterJungle(unit)
+end
+function _MapPosition:inBottomInnerJungle(unit)
+	return _MapPosition:inBottomLeftInnerJungle(unit) or _MapPosition:inBottomRightInnerJungle(unit)
+end
+----[[ MoreMore]]----------
+function _MapPosition:topLeftJungeGate1(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return Polygon:findContainingPolygon(unitPoint, regions["topLeftJungeGate1"])
+end
+function _MapPosition:botLeftJungeGate1(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return Polygon:findContainingPolygon(unitPoint, regions["botLeftJungeGate1"])
+end		
+function _MapPosition:midLeftJungeGate1(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return Polygon:findContainingPolygon(unitPoint, regions["midLeftJungeGate1"])
+end
+function _MapPosition:midRightJungeGate1(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return Polygon:findContainingPolygon(unitPoint, regions["midRightJungeGate1"])
+end		
+function _MapPosition:botRightJungeGate1(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return Polygon:findContainingPolygon(unitPoint, regions["botRightJungeGate1"])
+end
+function _MapPosition:topRightJungeGate1(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return Polygon:findContainingPolygon(unitPoint, regions["topRightJungeGate1"])
+end
+function _MapPosition:BaronHuntingPoint1(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return Polygon:findContainingPolygon(unitPoint, regions["BaronHuntingPoint1"])
+end	
+function _MapPosition:DragonHuntingPoint1(unit)
+	unitPoint = Point(unit.x, unit.z)
+	return Polygon:findContainingPolygon(unitPoint, regions["DragonHuntingPoint1"])
+end	
+function drawLine(line, color, width)
+  x1, y1, onScreen1 = get2DFrom3D(line.points[1].x, myHero.y, line.points[1].y)
+  x2, y2, onScreen2 = get2DFrom3D(line.points[2].x, myHero.y, line.points[2].y)
+	DrawLine(x1, y1, x2, y2, width, color)
+end
+uniqueId = 0
+class 'Point' --{
+function Point:__init(x, y)
+	uniqueId = uniqueId + 1
+	self.uniqueId = uniqueId
+	self.x = x
+	self.y = y
+	self.points = {self}
+end
+function Point:__type()
+	return "Point"
+end
+function Point:__eq(spatialObject)
+	return tostring(type(spatialObject)) == "Point" and self.x == spatialObject.x and self.y == spatialObject.y
+end
+function Point:__unm()
+	return Point(-self.x, -self.y)
+end
+function Point:__add(p)
+	return Point(self.x + p.x, self.y + p.y)
+end
+function Point:__sub(p)
+	return Point(self.x - p.x, self.y - p.y)
+end
+function Point:__mul(p)
+	if type(p) == "number" then
+		return Point(self.x * p, self.y * p)
+	else
+		return Point(self.x * p.x, self.y * p.y)
+	end
+end
+function Point:tostring()
+	return "Point(" .. tostring(self.x) .. ", " .. tostring(self.y) .. ")"
+end
+function Point:__div(p)
+	if type(p) == "number" then
+		return Point(self.x / p, self.y / p)
+	else
+		return Point(self.x / p.x, self.y / p.y)
+	end
+end
+function Point:between(point1, point2)
+	local normal = Line(point1, point2):normal()
+	return Line(point1, point1 + normal):side(self) ~= Line(point2, point2 + normal):side(self)
+end
+function Point:len()
+	return math.sqrt(self.x * self.x + self.y * self.y)
+end
+function Point:normalize()
+	len = self:len()
+	self.x = self.x / len
+	self.y = self.y / len
+	return self
+end
+function Point:clone()
+	return Point(self.x, self.y)
+end
+function Point:Normalize()
+	local a = self:clone()
+	a:Normalize()
+	return a
+end
+function Point:getPoints()
+	return self.points
+end
+function Point:getLineSegments()
+	return {}
+end
+function Point:perpendicularFoot(line)
+	local distanceFromLine = line:distance(self)
+	local normalVector = line:normal():Normalize()
+	local footOfPerpendicular = self + normalVector * distanceFromLine
+	if line:distance(footOfPerpendicular) > distanceFromLine then
+		footOfPerpendicular = self - normalVector * distanceFromLine
+	end
+	return footOfPerpendicular
+end
+function Point:contains(spatialObject)
+	if tostring(type(spatialObject)) == "Line" then
+		return false
+	elseif tostring(type(spatialObject)) == "Circle" then
+		return spatialObject.point == self and spatialObject.radius == 0
+	else
+		for i, point in ipairs(spatialObject:getPoints()) do
+			if point ~= self then
+				return false
+			end
+		end
+	end
+	return true
+end
+function Point:polar()
+	if math.close(self.x, 0) then
+		if self.y > 0 then return 90
+		elseif self.y < 0 then return 270
+		else return 0
+		end
+	else
+		local theta = math.deg(math.atan(self.y / self.x))
+		if self.x < 0 then theta = theta + 180 end
+		if theta < 0 then theta = theta + 360 end
+		return theta
+	end
+end
+function Point:insideOf(spatialObject)
+	return spatialObject.contains(self)
+end
+function Point:distance(spatialObject)
+	if tostring(type(spatialObject)) == "Point" then
+		return math.sqrt((self.x - spatialObject.x)^2 + (self.y - spatialObject.y)^2)
+	elseif tostring(type(spatialObject)) == "Line" then
+		denominator = (spatialObject.points[2].x - spatialObject.points[1].x)
+		if denominator == 0 then
+			return math.abs(self.x - spatialObject.points[2].x)
+		end
+		m = (spatialObject.points[2].y - spatialObject.points[1].y) / denominator
+		return math.abs((m * self.x - self.y + (spatialObject.points[1].y - m * spatialObject.points[1].x)) / math.sqrt(m * m + 1))
+	elseif tostring(type(spatialObject)) == "Circle" then
+		return self:distance(spatialObject.point) - spatialObject.radius
+	elseif tostring(type(spatialObject)) == "LineSegment" then
+		local t = ((self.x - spatialObject.points[1].x) * (spatialObject.points[2].x - spatialObject.points[1].x) + (self.y - spatialObject.points[1].y) * (spatialObject.points[2].y - spatialObject.points[1].y)) / ((spatialObject.points[2].x - spatialObject.points[1].x)^2 + (spatialObject.points[2].y - spatialObject.points[1].y)^2)
+		if t <= 0.0 then
+			return self:distance(spatialObject.points[1])
+		elseif t >= 1.0 then
+			return self:distance(spatialObject.points[2])
+		else
+			return self:distance(Line(spatialObject.points[1], spatialObject.points[2]))
+		end
+	else
+		local minDistance = nil
+		for i, lineSegment in ipairs(spatialObject:getLineSegments()) do
+			if minDistance == nil then
+				minDistance = self:distance(lineSegment)
+			else
+				minDistance = math.min(minDistance, self:distance(lineSegment))
+			end
+		end
+		return minDistance
+	end
+end
+--}
+class 'Line' --{
+function Line:__init(point1, point2)
+	uniqueId = uniqueId + 1
+	self.uniqueId = uniqueId
+	self.points = {point1, point2}
+end
+function Line:__type()
+	return "Line"
+end
+function Line:__eq(spatialObject)
+	return tostring(type(spatialObject)) == "Line" and self:distance(spatialObject) == 0
+end
+function Line:getPoints()
+	return self.points
+end
+function Line:getLineSegments()
+	return {}
+end
+function Line:direction()
+	return self.points[2] - self.points[1]
+end
+function Line:normal()
+	return Point(- self.points[2].y + self.points[1].y, self.points[2].x - self.points[1].x)
+end
+function Line:perpendicularFoot(point)
+	return point:perpendicularFoot(self)
+end
+function Line:side(spatialObject)
+	leftPoints = 0
+	rightPoints = 0
+	onPoints = 0
+	for i, point in ipairs(spatialObject:getPoints()) do
+		local result = ((self.points[2].x - self.points[1].x) * (point.y - self.points[1].y) - (self.points[2].y - self.points[1].y) * (point.x - self.points[1].x))
+		if result < 0 then
+			leftPoints = leftPoints + 1
+		elseif result > 0 then
+			rightPoints = rightPoints + 1
+		else
+			onPoints = onPoints + 1
+		end
+	end
+	if leftPoints ~= 0 and rightPoints == 0 and onPoints == 0 then
+		return -1
+	elseif leftPoints == 0 and rightPoints ~= 0 and onPoints == 0 then
+		return 1
+	else
+		return 0
+	end
+end
+function Line:contains(spatialObject)
+	if tostring(type(spatialObject)) == "Point" then
+		return spatialObject:distance(self) == 0
+	elseif tostring(type(spatialObject)) == "Line" then
+		return self.points[1]:distance(spatialObject) == 0 and self.points[2]:distance(spatialObject) == 0
+	elseif tostring(type(spatialObject)) == "Circle" then
+		return spatialObject.point:distance(self) == 0 and spatialObject.radius == 0
+	elseif tostring(type(spatialObject)) == "LineSegment" then
+		return spatialObject.points[1]:distance(self) == 0 and spatialObject.points[2]:distance(self) == 0
+	else
+		for i, point in ipairs(spatialObject:getPoints()) do
+			if point:distance(self) ~= 0 then
+				return false
+			end
+		end
+		return true
+	end
+	return false
+end
+function Line:insideOf(spatialObject)
+	return spatialObject:contains(self)
+end
+function Line:distance(spatialObject)
+	if tostring(type(spatialObject)) == "Circle" then
+		return spatialObject.point:distance(self) - spatialObject.radius
+	elseif tostring(type(spatialObject)) == "Line" then
+		distance1 = self.points[1]:distance(spatialObject)
+		distance2 = self.points[2]:distance(spatialObject)
+		if distance1 ~= distance2 then
+			return 0
+		else
+			return distance1
+		end
+	else
+		local minDistance = nil
+		for i, point in ipairs(spatialObject:getPoints()) do
+			distance = point:distance(self)
+			if minDistance == nil or distance <= minDistance then
+				minDistance = distance
+			end
+		end
+		return minDistance
+	end
+end
+--}
+class 'Circle' --{
+function Circle:__init(point, radius)
+	uniqueId = uniqueId + 1
+	self.uniqueId = uniqueId
+	self.point = point
+	self.radius = radius
+	self.points = {self.point}
+end
+function Circle:__type()
+	return "Circle"
+end
+function Circle:__eq(spatialObject)
+	return tostring(type(spatialObject)) == "Circle" and (self.point == spatialObject.point and self.radius == spatialObject.radius)
+end
+function Circle:getPoints()
+	return self.points
+end
+function Circle:getLineSegments()
+	return {}
+end
+function Circle:contains(spatialObject)
+	if tostring(type(spatialObject)) == "Line" then
+		return false
+	elseif tostring(type(spatialObject)) == "Circle" then
+		return self.radius >= spatialObject.radius + self.point:distance(spatialObject.point)
+	else
+		for i, point in ipairs(spatialObject:getPoints()) do
+			if self.point:distance(point) >= self.radius then
+				return false
+			end
+		end
+		return true
+	end
+end
+function Circle:insideOf(spatialObject)
+	return spatialObject:contains(self)
+end
+function Circle:distance(spatialObject)
+	return self.point:distance(spatialObject) - self.radius
+end
+function Circle:intersectionPoints(spatialObject)
+	local result = {}
+	dx = self.point.x - spatialObject.point.x
+	dy = self.point.y - spatialObject.point.y
+	dist = math.sqrt(dx * dx + dy * dy)
+	if dist > self.radius + spatialObject.radius then
+		return result
+	elseif dist < math.abs(self.radius - spatialObject.radius) then
+		return result
+	elseif (dist == 0) and (self.radius == spatialObject.radius) then
+		return result
+	else
+		a = (self.radius * self.radius - spatialObject.radius * spatialObject.radius + dist * dist) / (2 * dist)
+		h = math.sqrt(self.radius * self.radius - a * a)
+		cx2 = self.point.x + a * (spatialObject.point.x - self.point.x) / dist
+		cy2 = self.point.y + a * (spatialObject.point.y - self.point.y) / dist
+		intersectionx1 = cx2 + h * (spatialObject.point.y - self.point.y) / dist
+		intersectiony1 = cy2 - h * (spatialObject.point.x - self.point.x) / dist
+		intersectionx2 = cx2 - h * (spatialObject.point.y - self.point.y) / dist
+		intersectiony2 = cy2 + h * (spatialObject.point.x - self.point.x) / dist
+		table.insert(result, Point(intersectionx1, intersectiony1))
+		if intersectionx1 ~= intersectionx2 or intersectiony1 ~= intersectiony2 then
+			table.insert(result, Point(intersectionx2, intersectiony2))
+		end
+	end
+	return result
+end
+function Circle:tostring()
+	return "Circle(Point(" .. self.point.x .. ", " .. self.point.y .. "), " .. self.radius .. ")"
+end
+--}
+class 'LineSegment' --{
+function LineSegment:__init(point1, point2)
+	uniqueId = uniqueId + 1
+	self.uniqueId = uniqueId
+	self.points = {point1, point2}
+end
+function LineSegment:__type()
+	return "LineSegment"
+end
+function LineSegment:__eq(spatialObject)
+	return tostring(type(spatialObject)) == "LineSegment" and ((self.points[1] == spatialObject.points[1] and self.points[2] == spatialObject.points[2]) or (self.points[2] == spatialObject.points[1] and self.points[1] == spatialObject.points[2]))
+end
+function LineSegment:getPoints()
+	return self.points
+end
+function LineSegment:getLineSegments()
+	return {self}
+end
+function LineSegment:direction()
+	return self.points[2] - self.points[1]
+end
+function LineSegment:len()
+	return (self.points[1] - self.points[2]):len()
+end
+function LineSegment:contains(spatialObject)
+	if tostring(type(spatialObject)) == "Point" then
+		return spatialObject:distance(self) == 0
+	elseif tostring(type(spatialObject)) == "Line" then
+		return false
+	elseif tostring(type(spatialObject)) == "Circle" then
+		return spatialObject.point:distance(self) == 0 and spatialObject.radius == 0
+	elseif tostring(type(spatialObject)) == "LineSegment" then
+		return spatialObject.points[1]:distance(self) == 0 and spatialObject.points[2]:distance(self) == 0
+	else
+	for i, point in ipairs(spatialObject:getPoints()) do
+		if point:distance(self) ~= 0 then
+			return false
+		end
+	end
+	return true
+	end
+	return false
+end
+function LineSegment:insideOf(spatialObject)
+	return spatialObject:contains(self)
+end
+function LineSegment:distance(spatialObject)
+	if tostring(type(spatialObject)) == "Circle" then
+		return spatialObject.point:distance(self) - spatialObject.radius
+	elseif tostring(type(spatialObject)) == "Line" then
+		return math.min(self.points[1]:distance(spatialObject), self.points[2]:distance(spatialObject))
+	else
+		local minDistance = nil
+		for i, point in ipairs(spatialObject:getPoints()) do
+			distance = point:distance(self)
+			if minDistance == nil or distance <= minDistance then
+				minDistance = distance
+			end
+		end
+		return minDistance
+	end
+end
+function LineSegment:intersects(spatialObject)
+	return #self:intersectionPoints(spatialObject) >= 1
+end
+function LineSegment:intersectionPoints(spatialObject)
+	if tostring(type(spatialObject))  == "LineSegment" then
+		d = (spatialObject.points[2].y - spatialObject.points[1].y) * (self.points[2].x - self.points[1].x) - (spatialObject.points[2].x - spatialObject.points[1].x) * (self.points[2].y - self.points[1].y)
+		if d ~= 0 then
+			ua = ((spatialObject.points[2].x - spatialObject.points[1].x) * (self.points[1].y - spatialObject.points[1].y) - (spatialObject.points[2].y - spatialObject.points[1].y) * (self.points[1].x - spatialObject.points[1].x)) / d
+			ub = ((self.points[2].x - self.points[1].x) * (self.points[1].y - spatialObject.points[1].y) - (self.points[2].y - self.points[1].y) * (self.points[1].x - spatialObject.points[1].x)) / d
+			if ua >= 0 and ua <= 1 and ub >= 0 and ub <= 1 then
+				return {Point (self.points[1].x + (ua * (self.points[2].x - self.points[1].x)), self.points[1].y + (ua * (self.points[2].y - self.points[1].y)))}
+			end
+		end
+	end
+	return {}
+end
+function LineSegment:draw(color, width)
+	drawLine(self, color or 0XFF00FF00, width or 4)
+end
+--}
+class 'Polygon' --{
+function Polygon:__init(...)
+	uniqueId = uniqueId + 1
+	self.uniqueId = uniqueId
+	self.points = {...}
+end
+function Polygon:__type()
+	return "Polygon"
+end
+function Polygon:__eq(spatialObject)
+	return tostring(type(spatialObject)) == "Polygon" -- TODO
+end
+function Polygon:getPoints()
+	return self.points
+end
+function Polygon:addPoint(point)
+	table.insert(self.points, point)
+	self.lineSegments = nil
+	self.triangles = nil
+end
+function Polygon:getLineSegments()
+	if self.lineSegments == nil then
+		self.lineSegments = {}
+		for i = 1, #self.points, 1 do
+			table.insert(self.lineSegments, LineSegment(self.points[i], self.points[(i % #self.points) + 1]))
+		end
+	end
+	return self.lineSegments
+end
+function Polygon:contains(spatialObject)	
+	-- Core.OutputDebugString(tostring(type(spatialObject)))
+	local candidate = true
+	local inTriangles = false
+	if tostring(type(spatialObject)) == "Line" then
+		candidate = false
+		-- Core.OutputDebugString("A: "..tostring(candidate))
+	elseif #self.points == 3 then
+		for i, point in ipairs(self.points) do
+			-- Core.OutputDebugString(point.y)
+			corner1DotCorner2 = ((point.y - self.points[1].y) * (self.points[2].x - self.points[1].x)) - ((point.x - self.points[1].x) * (self.points[2].y - self.points[1].y))
+			corner2DotCorner3 = ((point.y - self.points[2].y) * (self.points[3].x - self.points[2].x)) - ((point.x - self.points[2].x) * (self.points[3].y - self.points[2].y))
+			corner3DotCorner1 = ((point.y - self.points[3].y) * (self.points[1].x - self.points[3].x)) - ((point.x - self.points[3].x) * (self.points[1].y - self.points[3].y))
+			if not (corner1DotCorner2 * corner2DotCorner3 >= 0 and corner2DotCorner3 * corner3DotCorner1 >= 0) then
+				candidate = false
+				-- Core.OutputDebugString("B: "..tostring(candidate))
+				break
+			end
+		end
+		if tostring(type(spatialObject)) == "Circle" then
+			for i, lineSegment in ipairs(self:getLineSegments()) do
+				if spatialObject.point:distance(lineSegment) <= 0 then
+					candidate = false
+					-- Core.OutputDebugString("C: "..tostring(candidate))
+					break
+				end
+			end
+		end		
+	else		
+		-- Core.OutputDebugString(tostring(self:triangulate()))
+		for i, point in ipairs(self.points) do
+			-- Core.OutputDebugString(#self.points)
+			for j, triangle in ipairs(self:triangulate()) do
+				-- Core.OutputDebugString(#self:triangulate())
+				if triangle:contains(point) then
+					inTriangles = true
+					break
+				end
+			end
+		end		
+		if not inTriangles then
+			candidate = false
+			-- Core.OutputDebugString("D: "..tostring(candidate))
+		end
+	end
+	if candidate == true then
+		-- Core.OutputDebugString("final: "..tostring(candidate))
+	end	
+	return candidate
+end
+function Polygon:insideOf(spatialObject)
+	return spatialObject.contains(self)
+end
+function Polygon:direction()
+	if self.directionValue == nil then
+		local rightMostPoint = nil
+		local rightMostPointIndex = nil
+		for i, point in ipairs(self.points) do
+			if rightMostPoint == nil or point.x >= rightMostPoint.x then
+				rightMostPoint = point
+				rightMostPointIndex = i
+			end
+		end
+		rightMostPointPredecessor = self.points[(rightMostPointIndex - 1 - 1) % #self.points + 1]
+		rightMostPointSuccessor   = self.points[(rightMostPointIndex + 1 - 1) % #self.points + 1]
+		z = (rightMostPoint.x - rightMostPointPredecessor.x) * (rightMostPointSuccessor.y - rightMostPoint.y) - (rightMostPoint.y - rightMostPointPredecessor.y) * (rightMostPointSuccessor.x - rightMostPoint.x)
+		if z > 0 then
+			self.directionValue = 1
+		elseif z < 0 then
+			self.directionValue = -1
+		else
+			self.directionValue = 0
+		end
+	end
+	return self.directionValue
+end
+function Polygon:triangulate()	
+	-- self.triangles = {}
+	-- if self.triangles == nil then
+		self.triangles = {}
+		if #self.points > 3 then
+			-- Core.OutputDebugString((#self.points))
+			tempPoints = {}
+			for i, point in ipairs(self.points) do
+				table.insert(tempPoints, point)
+			end
+			triangleFound = true
+			-- Core.OutputDebugString(("tempPoints "..#tempPoints))
+			while #tempPoints > 3 and triangleFound do
+				triangleFound = false
+				for i, point in ipairs(tempPoints) do
+					-- Core.OutputDebugString(("tempPoints2 "..#tempPoints))
+					point1Index = (i - 1 - 1) % #tempPoints + 1
+					point2Index = (i + 1 - 1) % #tempPoints + 1
+					-- Core.OutputDebugString(("point1Index ".. tostring(point1Index)))
+					-- Core.OutputDebugString(("point2Index ".. tostring(point2Index)))
+					point1 = tempPoints[point1Index]
+					point2 = tempPoints[point2Index]
+					if ((((point1.x - point.x) * (point2.y - point.y) - (point1.y - point.y) * (point2.x - point.x))) * self:direction()) < 0 then
+						triangleCandidate = Polygon(point1, point, point2)
+						anotherPointInTriangleFound = false
+						for q = 1, #tempPoints, 1 do
+							-- Core.OutputDebugString((tostring(#tempPoints)))
+							-- Core.OutputDebugString((tostring(q ~= i)))
+							-- Core.OutputDebugString((tostring(q ~= point1Index)))
+							-- Core.OutputDebugString((tostring(q ~= point2Index)))
+							-- Core.OutputDebugString((tostring(triangleCandidate:contains(tempPoints[q]))))
+							if q ~= i and q ~= point1Index and q ~= point2Index and triangleCandidate:contains(tempPoints[q]) then
+								-- Core.OutputDebugString(("anotherPointInTriangleFound  "))
+								anotherPointInTriangleFound = true
+								break
+							end
+						end
+						if not anotherPointInTriangleFound then
+						-- if anotherPointInTriangleFound then
+							-- Core.OutputDebugString(("NOT anotherPointInTriangleFound  "))
+							table.insert(self.triangles, triangleCandidate)
+							table.remove(tempPoints, i)
+							i = i - 1
+							triangleFound = true
+						end
+					end
+				end
+				-- Core.OutputDebugString(("triangleFound "..#tempPoints))
+			end
+			if #tempPoints == 3 then
+				-- Core.OutputDebugString("3311")
+				table.insert(self.triangles, Polygon(tempPoints[1], tempPoints[2], tempPoints[3]))
+			end
+		elseif #self.points == 3 then
+			-- Core.OutputDebugString("33")
+			table.insert(self.triangles, self)
+		end
+	-- else
+		-- Core.OutputDebugString((tostring(self.triangles)))
+		-- Core.OutputDebugString((tostring(#self.triangles)))
+	-- end
+	return self.triangles
+end
+function Polygon:intersects(spatialObject)
+	for i, lineSegment1 in ipairs(self:getLineSegments()) do
+		for j, lineSegment2 in ipairs(spatialObject:getLineSegments()) do
+			if lineSegment1:intersects(lineSegment2) then
+				return true
+			end
+		end
+	end
+	return false
+end
+function Polygon:distance(spatialObject)
+	local minDistance = nil
+	for i, lineSegment in ipairs(self:getLineSegment()) do
+		distance = point:distance(self)
+		if minDistance == nil or distance <= minDistance then
+			minDistance = distance
+		end
+	end
+	return minDistance
+end
+function Polygon:tostring()
+	local result = "Polygon("
+	for i, point in ipairs(self.points) do
+		if i == 1 then
+			result = result .. point:tostring()
+		else
+			result = result .. ", " .. point:tostring()
+		end
+	end
+	return result .. ")"
+end
+function Polygon:draw(color, width)
+	for i, lineSegment in ipairs(self:getLineSegments()) do
+		lineSegment:draw(color, width)
+	end
+end
+--}
+--{
+function Polygon:checkSide(point, vect1, vect2)
+	-- Returns a positive number if point is on the right of the line going through points vect1 and vect2,
+	-- 0 if it lies on the line, and a negative number if it is on the left.
+	return (vect2.x - vect1.x) * (point.y - vect1.y) - (vect2.y - vect1.y) * (point.x - vect1.x)
+end
+function Polygon:isInsidePolygon(point, polygon)
+	-- Polygon is a list of points.
+	local side = self:checkSide(point, polygon[#polygon], polygon[1])
+	if side == 0 then 
+		return "on the line" -- Returns a specific result which still is considered true by Lua.
+	end
+	local left = side < 0
+	for i=2, #polygon do
+		local left2 = self:checkSide(point, polygon[i-1], polygon[i]) < 0
+		if left ~= left2 then
+			return false
+		end
+	end
+	return true
+end
+function Polygon:getBoundingBox(polygon)
+	if not polygon.AABB then 
+		local minx = polygon[1].x
+		local miny = polygon[1].y
+		local maxx = polygon[1].x
+		local maxy = polygon[1].y
+		for i=2, #polygon do
+			if polygon[i].x < minx then
+				minx = polygon[i].x
+			elseif polygon[i].x > maxx then
+				maxx = polygon[i].x
+			end
+			if polygon[i].y < miny then
+				miny = polygon[i].y
+			elseif polygon[i].y > maxy then
+				maxy = polygon[i].y
+			end
+		end
+		polygon.AABB = {{x=minx, y=miny}, {x=maxx, y=maxy}}
+	end
+	return polygon.AABB[1].x, polygon.AABB[1].y, polygon.AABB[2].x, polygon.AABB[2].y
+end
+function Polygon:isInsideAABB(point, polygon)
+	local minx, miny, maxx, maxy = self:getBoundingBox(polygon)
+	if point.x < minx or point.x > maxx or point.y < miny or point.x > maxx then
+		return false
+	else
+		return true
+	end
+end
+function Polygon:findContainingPolygon(point, polygon, key)
+	-- local point = {x=x, y=y}
+	-- for i=1, #list do
+		-- local polygon ={}
+		-- if key then
+			-- polygon = list[i][key]
+		-- else
+			-- polygon = list[i]
+		-- end
+		if (#polygon >= 3) and self:isInsideAABB(point, polygon) and self:isInsidePolygon(point, polygon) then
+			return true
+		else
+			return false
+		end
+	-- end
+end
+function Polygon:printPoint (point)
+	print('x=' .. point.x .. ', y=' .. point.y)
+end
+function Polygon:printPolygon (polygon)
+	print('Printing vertices of a polygon with ' .. #polygon .. ' sides:')
+	for i=1, #polygon do
+		io.write('    ')
+		printPoint(polygon[i])
+	end
+end
+--}
